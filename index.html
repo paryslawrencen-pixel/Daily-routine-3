@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Daily Guide | Self-Improvement</title>
+
+    <!-- PWA & iOS Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Daily">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3281/3281323.png">
+    <meta name="theme-color" content="#0d0d0d">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="date-hero">
+                    <h2 id="today-date">...</h2>
+                    <p>Your Daily Transformation Plan</p>
+                </div>
+                <div class="stats-hero">
+                    <div class="stat-bubble">
+                        <span id="streak-count">0</span>
+                        <label>Streak</label>
+                    </div>
+                    <div class="backup-controls">
+                        <button class="icon-btn" onclick="showStats()" title="View Progress Charts">📈</button>
+                        <button class="icon-btn" onclick="exportState()" title="Export Backup">💾</button>
+                        <button class="icon-btn" onclick="document.getElementById('import-input').click()"
+                            title="Import Backup">📂</button>
+                        <input type="file" id="import-input" style="display: none" onchange="importState(event)">
+                    </div>
+                </div>
+            </div>
+
+            <div id="macro-banner" class="macro-banner">
+                <div class="macro-stats">
+                    <span id="daily-kcals">🔥 0 kcal</span>
+                    <span class="macro-sep">|</span>
+                    <span id="daily-protein">💪 0g Protein</span>
+                </div>
+                <div id="macro-suggestion" class="macro-suggestion"></div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-meta">
+                    <span id="progress-text">0% Complete</span>
+                </div>
+                <div class="progress-track">
+                    <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Deadline Dashboard -->
+        <section id="deadline-dashboard" class="deadline-dashboard">
+            <div class="deadline-header">
+                <h3>🚨 Assignments & Events</h3>
+                <button class="add-ex-btn" onclick="openDeadlineModal()">+ Add New</button>
+            </div>
+            <div id="deadline-list" class="deadline-scroll-box">
+                <!-- Deadlines injected here -->
+            </div>
+            <div id="deadline-passed-toggle" class="passed-toggle" onclick="togglePassedDeadlines()">
+                Show Passed Events
+            </div>
+        </section>
+
+        <!-- Weekly Planner Lookahead -->
+        <section class="weekly-planner">
+            <div class="planner-header">
+                <button class="nav-btn" onclick="navigateWeek(-1)">← Prev Week</button>
+                <button id="jump-today" class="today-btn" onclick="jumpToToday()">Back to Today</button>
+                <button class="nav-btn" onclick="navigateWeek(1)">Next Week →</button>
+            </div>
+            <div id="weekly-planner-container" class="planner-grid">
+                <!-- Days injected here -->
+            </div>
+        </section>
+
+        <main class="timeline-view">
+            <div id="timeline-container">
+                <!-- Dynamic Timeline Injected Here -->
+                <div class="loading">Building your schedule...</div>
+            </div>
+        </main>
+
+        <!-- Shopping List Modal -->
+        <div id="shop-modal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>Aldi High-Protein Shop</h3>
+                    <button class="close-btn" onclick="closeModal()">×</button>
+                </div>
+                <p class="modal-desc">Build your bulk: Focus on high-protein, high-calorie, low-cost staples.</p>
+                <div class="custom-item-add">
+                    <input type="text" id="custom-item-name" placeholder="Add custom item..."
+                        onkeydown="if(event.key==='Enter') addCustomShopItem()">
+                    <select id="custom-item-cat">
+                        <option value="Household">🏠 Household</option>
+                        <option value="Protein">🥩 Protein</option>
+                        <option value="Veg/Fruit">🍏 Veg/Fruit</option>
+                        <option value="Carbs">🍝 Carbs</option>
+                        <option value="Health">💊 Health</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                    <button onclick="addCustomShopItem()">Add</button>
+                </div>
+                <div id="stock-check-container" class="stock-check-section">
+                    <!-- Stock check prompts injected here -->
+                </div>
+                <div id="shop-list-items" class="shop-list-grid">
+                    <!-- Items injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Recipe Modal -->
+        <div id="recipe-modal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3 id="recipe-title">Recipe Details</h3>
+                    <button class="close-btn" onclick="closeModal()">×</button>
+                </div>
+                <div id="recipe-content" class="recipe-details">
+                    <!-- Recipe injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-card stats-modal">
+            <div class="modal-header">
+                <h3>Progress Analytics</h3>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div id="stats-content" class="stats-container">
+                <!-- Charts populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Modal -->
+    <div id="deadline-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Manage Assignments</h3>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="deadline-form">
+                <input type="text" id="new-deadline-title" placeholder="Event/Essay Title (e.g. MCQ Exam)">
+                <input type="date" id="new-deadline-date">
+                <button class="save-overload-btn" onclick="saveNewDeadline()">Add Event</button>
+            </div>
+            <div id="manage-deadline-list" class="manage-list">
+                <!-- List for deletion -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Pomodoro Overlay -->
+    <div id="pomodoro-overlay" class="timer-overlay">
+        <div class="timer-card">
+            <div class="timer-digital" id="timer-display">25:00</div>
+            <div class="timer-label" id="timer-status">Focus Mode</div>
+            <div class="timer-controls">
+                <button id="timer-toggle-btn" class="save-overload-btn" onclick="toggleTimer()">Start</button>
+                <button class="add-ex-btn" onclick="resetTimer()">Reset</button>
+                <button class="nav-btn" onclick="closeTimer()">Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('SW Registered', reg))
+                .catch(err => console.log('SW Failed', err));
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Daily Routine",
+  "short_name": "Daily",
+  "description": "Personal Self-Improvement Tracker",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#ffc107",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3281/3281323.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
