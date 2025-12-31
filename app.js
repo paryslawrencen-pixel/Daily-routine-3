@@ -720,18 +720,14 @@ window.renderDeadlines = function () {
 
   const displayDeadlines = [...state.deadlines];
 
-  // Elite Birthday Logic: Show if within 60 days or if no other soon deadlines
+  // Elite Birthday Logic: Only show if within 14 days
   const currentYear = now.getFullYear();
   let bdayDate = new Date(`${currentYear}-${state.profile.birthday}`);
   if (bdayDate < now) bdayDate = new Date(`${currentYear + 1}-${state.profile.birthday}`);
 
   const bdayDiff = Math.ceil((bdayDate - now) / (1000 * 60 * 60 * 24));
-  const hasSoonDeadlines = state.deadlines.some(d => {
-    const diff = Math.ceil((new Date(d.date) - now) / (1000 * 60 * 60 * 24));
-    return diff >= 0 && diff <= 14;
-  });
 
-  if (bdayDiff <= 60 || !hasSoonDeadlines) {
+  if (bdayDiff <= 14) {
     displayDeadlines.push({
       id: 'birthday-recurring',
       title: 'My Birthday 🎂',
