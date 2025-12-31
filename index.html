@@ -33,10 +33,7 @@
                     </div>
                     <div class="backup-controls">
                         <button class="icon-btn" onclick="showStats()" title="View Progress Charts">📈</button>
-                        <button class="icon-btn" onclick="exportState()" title="Export Backup">💾</button>
-                        <button class="icon-btn" onclick="document.getElementById('import-input').click()"
-                            title="Import Backup">📂</button>
-                        <input type="file" id="import-input" style="display: none" onchange="importState(event)">
+                        <button class="icon-btn" onclick="openDeadlineModal()" title="Add New Event">➕</button>
                     </div>
                 </div>
             </div>
@@ -64,7 +61,6 @@
         <section id="deadline-dashboard" class="deadline-dashboard">
             <div class="deadline-header">
                 <h3>🚨 Assignments & Events</h3>
-                <button class="add-ex-btn" onclick="openDeadlineModal()">+ Add New</button>
             </div>
             <div id="deadline-list" class="deadline-scroll-box">
                 <!-- Deadlines injected here -->
