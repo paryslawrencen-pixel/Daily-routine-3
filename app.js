@@ -714,19 +714,24 @@ window.renderDeadlines = function () {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
-  // Inject Birthday recursively
+  const displayDeadlines = [...state.deadlines];
+
+  // Elite Birthday Logic: Only show if within 30 days
   const currentYear = now.getFullYear();
   let bdayDate = new Date(`${currentYear}-${state.profile.birthday}`);
   if (bdayDate < now) bdayDate = new Date(`${currentYear + 1}-${state.profile.birthday}`);
 
-  const deadlines = [...state.deadlines, {
-    id: 'birthday-recurring',
-    title: 'My Birthday 🎂',
-    date: bdayDate.toISOString().split('T')[0]
-  }];
+  const bdayDiff = Math.ceil((bdayDate - now) / (1000 * 60 * 60 * 24));
+  if (bdayDiff <= 30) {
+    displayDeadlines.push({
+      id: 'birthday-recurring',
+      title: 'My Birthday 🎂',
+      date: bdayDate.toISOString().split('T')[0]
+    });
+  }
 
   // Sort deadlines by date
-  const sorted = deadlines.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const sorted = displayDeadlines.sort((a, b) => new Date(a.date) - new Date(b.date));
 
   let html = '';
   sorted.forEach(d => {
@@ -734,6 +739,7 @@ window.renderDeadlines = function () {
     const diffDays = Math.ceil((dDate - now) / (1000 * 60 * 60 * 24));
     const isPassed = diffDays < 0;
 
+    // Filter passed events
     if (isPassed && !state.showPassedDeadlines) return;
 
     let urgency = '';
@@ -755,10 +761,15 @@ window.renderDeadlines = function () {
         `;
   });
 
-  list.innerHTML = html || '<div class="deadline-card">No upcoming events</div>';
+  list.innerHTML = html || '<div class="deadline-card" style="border:none; opacity:0.5; text-align:center">No upcoming events 🧘</div>';
 
   const toggle = document.getElementById('deadline-passed-toggle');
-  if (toggle) toggle.innerText = state.showPassedDeadlines ? 'Hide Passed Events' : 'Show Passed Events';
+  if (toggle) {
+    // Hide toggle if there are no passed tasks to show
+    const hasPassed = state.deadlines.some(d => new Date(d.date) < now);
+    toggle.style.display = hasPassed ? 'block' : 'none';
+    toggle.innerText = state.showPassedDeadlines ? 'Hide Passed Events' : 'Show Passed Events';
+  }
 };
 
 window.togglePassedDeadlines = function () {
