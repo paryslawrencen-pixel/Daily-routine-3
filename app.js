@@ -461,19 +461,20 @@ function renderTimeline() {
     const shuffleKey = `${viewedKey}:${shuffleId}`;
 
     if (state.shuffledMeals[shuffleKey]) {
-      m.text = state.shuffledMeals[shuffleKey];
+      const parts = state.shuffledMeals[shuffleKey].split(': ');
+      m.text = parts.length > 1 ? `<b>${parts[0]}:</b> ${parts[1]}` : state.shuffledMeals[shuffleKey];
     } else if (shuffleId === 'meal-lunch') {
-      m.text = weekPlan[dayOfWeek].lunch;
+      m.text = `<b>Lunch:</b> ${weekPlan[dayOfWeek].lunch.replace('Lunch: ', '')}`;
     } else if (shuffleId === 'meal-dinner') {
-      m.text = weekPlan[dayOfWeek].dinner;
+      m.text = `<b>Dinner:</b> ${weekPlan[dayOfWeek].dinner.replace('Dinner: ', '')}`;
     } else if (shuffleId === 'meal-breakfast') {
-      m.text = "Breakfast: Oats, Greek Yogurt, Berries & Peanut Butter";
+      m.text = "<b>Breakfast:</b> Oats, Greek Yogurt, Berries & Peanut Butter";
     }
   });
 
   // Add recipe action to meals
   meals.forEach(m => {
-    const mealTitle = m.text.replace(/^(Lunch:|Dinner:|Breakfast:)\s*/, '');
+    const mealTitle = m.text.replace(/^(<b>Breakfast:<\/b>|<b>Lunch:<\/b>|<b>Dinner:<\/b>)\s*/, '');
     const isBreakfast = m.id === 'meal-breakfast';
     const targetBook = isBreakfast ? BREAKFAST_BOOK : RECIPE_BOOK;
 
@@ -575,31 +576,34 @@ function renderSection(title, tasks, type) {
     }
 
     sectionHtml += `
-            <div class="task-card ${isDone ? 'done' : ''} ${isStruck ? 'struck' : ''} ${isOverload ? 'overload-card' : ''} ${isHydration ? 'hydration-card' : ''}" 
-                 onclick="${task.action ? task.action : `toggleTask('${task.id}')`}"
-                 ondblclick="event.stopPropagation(); toggleStrike('${task.id}')">
-                <div class="checkbox"></div>
-                <div class="task-info">
-                    <div class="task-text">
-                        ${task.text}
-                        ${task.type === 'meal' ? `<button class="shuffle-btn" onclick="event.stopPropagation(); shuffleMeal('${task.id}')" title="Shuffle Meal (Inventory Aware)">🎲</button>` : ''}
-                    </div>
-                    ${task.time ? `<div class="task-subtext">${task.time}</div>` : ''}
-                    ${hydrationHtml}
-                    ${studyHtml}
-                    ${isOverload && overloadInfo ? `
-                        <div class="overload-prev-list">
-                            ${overloadInfo.last.exercises.map(ex => `
-                                <div class="prev-ex-item">
-                                    <span>${ex.name || ''}</span>
-                                    <span>${ex.sets}x${ex.reps}${task.bodyweight ? '' : ` @ ${ex.weight}kg`}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                ${!isDone && type.includes('boosters') ? `<button class="push-btn" onclick="event.stopPropagation(); pushTaskBack('${task.id}', '${viewedKey}')" title="Push to tomorrow">⏭️</button>` : ''}
-            </div>
+      <div class="task-card ${isDone ? 'done' : ''} ${isStruck ? 'struck' : ''} ${isOverload ? 'overload-card' : ''} ${isHydration ? 'hydration-card' : ''}" 
+           onclick="toggleTask('${task.id}')"
+           ondblclick="event.stopPropagation(); toggleStrike('${task.id}')">
+          <div class="checkbox"></div>
+          <div class="task-info">
+              <div class="task-text">
+                  ${task.text}
+                  <div class="task-actions-inline">
+                    ${task.type === 'meal' ? `<button class="shuffle-btn" onclick="event.stopPropagation(); shuffleMeal('${task.id}')" title="Shuffle Meal (Inventory Aware)">🎲</button>` : ''}
+                    ${task.action ? `<button class="recipe-link-btn" onclick="event.stopPropagation(); ${task.action}">📖 View Recipe</button>` : ''}
+                  </div>
+              </div>
+              ${task.time ? `<div class="task-subtext">${task.time}</div>` : ''}
+              ${hydrationHtml}
+              ${studyHtml}
+              ${isOverload && overloadInfo ? `
+                  <div class="overload-prev-list">
+                      ${overloadInfo.last.exercises.map(ex => `
+                          <div class="prev-ex-item">
+                              <span>${ex.name || ''}</span>
+                              <span>${ex.sets}x${ex.reps}${task.bodyweight ? '' : ` @ ${ex.weight}kg`}</span>
+                          </div>
+                      `).join('')}
+                  </div>
+              ` : ''}
+          </div>
+          ${!isDone && type.includes('boosters') ? `<button class="push-btn" onclick="event.stopPropagation(); pushTaskBack('${task.id}', '${viewedKey}')" title="Push to tomorrow">⏭️</button>` : ''}
+      </div>
             ${isOverload && !isDone ? `
                 <div class="overload-inputs" id="overload-container-${task.id}" onclick="event.stopPropagation()">
                     <div class="exercise-list" id="exercise-list-${task.id}">
@@ -716,13 +720,18 @@ window.renderDeadlines = function () {
 
   const displayDeadlines = [...state.deadlines];
 
-  // Elite Birthday Logic: Only show if within 30 days
+  // Elite Birthday Logic: Show if within 60 days or if no other soon deadlines
   const currentYear = now.getFullYear();
   let bdayDate = new Date(`${currentYear}-${state.profile.birthday}`);
   if (bdayDate < now) bdayDate = new Date(`${currentYear + 1}-${state.profile.birthday}`);
 
   const bdayDiff = Math.ceil((bdayDate - now) / (1000 * 60 * 60 * 24));
-  if (bdayDiff <= 30) {
+  const hasSoonDeadlines = state.deadlines.some(d => {
+    const diff = Math.ceil((new Date(d.date) - now) / (1000 * 60 * 60 * 24));
+    return diff >= 0 && diff <= 14;
+  });
+
+  if (bdayDiff <= 60 || !hasSoonDeadlines) {
     displayDeadlines.push({
       id: 'birthday-recurring',
       title: 'My Birthday 🎂',
@@ -1410,18 +1419,19 @@ function updateStats() {
 
   // Check Meal completion using correct IDs
   if (state.completed[`${viewedKey}:meal-1`]) {
-    const brkTitle = dayPlan.breakfast.replace('Breakfast: ', '');
+    const brkTitle = dayPlan.breakfast.replace(/^(<b>Breakfast:<\/b>|Breakfast:)\s*/, '');
     const recipe = BREAKFAST_BOOK[brkTitle];
     if (recipe) { totalKcal += recipe.kcals; totalProtein += recipe.protein; }
   }
   if (state.completed[`${viewedKey}:meal-2`]) {
-    const lunTitle = dayPlan.lunch.replace('Lunch: ', '');
+    const lunTitle = dayPlan.lunch.replace(/^(<b>Lunch:<\/b>|Lunch:)\s*/, '');
     const recipe = RECIPE_BOOK[lunTitle];
     if (recipe) { totalKcal += recipe.kcals; totalProtein += recipe.protein; }
   }
   if (state.completed[`${viewedKey}:meal-bulk-shake`]) {
-    const recipe = RECIPE_BOOK['Meal: Bulking Shake'] || { kcals: 800, protein: 55 }; // Fallback for bulk shake
-    totalKcal += recipe.kcals; totalProtein += recipe.protein;
+    const dinTitle = dayPlan.dinner.replace(/^(<b>Dinner:<\/b>|Dinner:)\s*/, '');
+    const recipe = RECIPE_BOOK[dinTitle] || { kcals: 800, protein: 55 };
+    if (recipe) { totalKcal += recipe.kcals; totalProtein += recipe.protein; }
   }
   // Check for specialized dinner (often meal-2 is used for both in this logic, but let's be precise)
   // If dinner is tracked separately, we'd need another ID, but for now we follow the 3-meal structure

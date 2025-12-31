@@ -727,14 +727,36 @@ body {
 }
 
 .task-text {
-    font-weight: 700;
-    font-size: 1.05rem;
-    color: var(--text);
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
     word-break: break-word;
     flex: 1;
+}
+
+.task-actions-inline {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.recipe-link-btn {
+    background: none;
+    border: none;
+    color: var(--primary-alt);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+.recipe-link-btn:hover {
+    opacity: 1;
+    color: var(--primary);
 }
 
 .shuffle-btn {
